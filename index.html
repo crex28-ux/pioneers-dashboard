@@ -8,23 +8,34 @@
 <style>
 :root {
   color-scheme: light;
-  /* Palette sampled directly from the real pioneers.be site (Roboto, the
-     site's #110ECF nav/CTA blue, its #043350 border navy) and from the club
-     crest artwork (#0B539F script blue, gold trim) — not an invented theme. */
+  /* Kit colours, from the club's own uniforms: HOME is Dodger blue on white,
+     AWAY is black on white. Gold, pink and baby blue appear on alternate
+     jerseys. --brand sits 11/7/3 per channel from official Dodger blue
+     #005A9C and stands in until the club's own hex is confirmed -- one line to
+     swap. Pink is deliberately absent: it tops out at 3.5:1 against white text
+     so it has no safe UI role yet. Two blues only (interactive + wash) plus one
+     black -- --brand-light/--brand-electric/--brand-navy were three near
+     identical blues doing one job, and that navy was not a kit colour at all. */
   --bg: #F6F7F9;
   --surface: #FFFFFF;
   --border: #E1E5EC;
   --text: #10181F;
   --text-muted: #4B5563;
   --brand: #0B539F;
-  --brand-light: #2E73BE;
-  --brand-electric: #110ECF;
-  --brand-navy: #06304F;
   --brand-wash: #EAF1FB;
+  --kit-black: #101418;
+  --baby: #B9CFE8;
+  /* Home/away, straight off the uniforms. This encodes a different dimension
+     from --win/--loss so it does not collide with the verdict colours. Never
+     put --brand on --kit-black (2.42:1) -- use #fff or --gold there. */
+  --home: var(--brand);
+  --away: var(--kit-black);
   --gold: #C9A227;
-  --gold-text: #8F721A;
+  --gold-text: #7E6416;   /* was #8F721A -- 4.13 on --gold-wash, under AA */
   --gold-wash: #FBF3DC;
-  --win: #1E8F5E;
+  --win: #177C51;         /* was #1E8F5E -- 4.08 w/ white, 3.66 on --win-wash;
+                             the loss red passed and the win green did not, so
+                             good news rendered weaker than bad news */
   --win-wash: #E7F6EE;
   --loss: #C0392B;
   --loss-wash: #FBEAE8;
@@ -45,9 +56,8 @@ button { font-family: inherit; }
    mouse click on a card does not leave a ring behind it. Two-tone outline so
    it stays visible on the white surfaces AND on the navy header. */
 :focus-visible {
-  outline: 3px solid var(--brand-electric);
+  outline: 3px solid var(--brand);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 .app-header :focus-visible, nav.tabs button:focus-visible { outline-color: var(--gold); }
 /* Cards promoted from <div> to <button> for keyboard reach -- strip the UA
@@ -65,11 +75,12 @@ button { font-family: inherit; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
 /* ---------- Header ---------- */
+/* The sticky band. One sticky context for header + nav, so neither has to know
+   the other's height and there is exactly one shadow at the bottom edge. */
+.stickband { position: sticky; top: 0; z-index: 20; box-shadow: 0 2px 8px rgba(16,24,32,0.05); }
 header.app-header {
-  position: sticky; top: 0; z-index: 20;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 2px 8px rgba(16,24,32,0.05);
   padding: 14px 20px;
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px; flex-wrap: wrap;
@@ -94,19 +105,19 @@ header.app-header {
    Overview summary strip, so drop them here rather than wrap to four rows. */
 @media (max-width: 560px) { .header-meta { display: none; } }
 .record-chip {
-  background: var(--brand-navy); color: #fff;
+  background: var(--kit-black); color: #fff;
   font-family: var(--font-mono); font-weight: 700; font-size: 17px;
   border-radius: 8px; padding: 7px 12px;
   letter-spacing: 0.03em;
 }
-.record-chip .lbl { font-family: var(--font-display); font-size: 11px; color: #B9CFE8; letter-spacing: 0.04em; text-transform: uppercase; margin-right: 6px; }
+.record-chip .lbl { font-family: var(--font-display); font-size: 11px; color: var(--baby); letter-spacing: 0.04em; text-transform: uppercase; margin-right: 6px; }
 /* The strip runs oldest -> newest, the opposite of the Games table below it
    (newest first), so five bare W/L dots were genuinely ambiguous -- read the
    wrong way round, a 3-1 hot streak looks like a slump. The arrow points into
    the dots to show which end is recent, and the last dot is ringed as "most
    recent"; each dot also carries its opponent and score as a tooltip.
    Note the label colour: this sits on the white header, NOT inside the navy
-   record chip, so it uses --text-muted. #B9CFE8 here would be ~1.5:1. */
+   record chip, so it uses --text-muted. var(--baby) here would be ~1.5:1. */
 .form-wrap { display: flex; align-items: center; gap: 8px; }
 .form-lbl {
   font-family: var(--font-display); font-size: 11px; color: var(--text-muted);
@@ -114,7 +125,9 @@ header.app-header {
 }
 .form-lbl .form-arrow { font-size: 11px; opacity: 0.8; }
 .form-strip { display: flex; gap: 4px; }
-.form-dot.latest { box-shadow: 0 0 0 2px rgba(255,255,255,0.85); }
+/* The 'most recent game' cue used to be a white ring on the white header,
+   i.e. invisible. White gap first so it still reads against the dot colour. */
+.form-dot.latest { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text); }
 .form-dot {
   width: 22px; height: 22px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
@@ -133,12 +146,11 @@ header.app-header {
    shows up only while there is more nav in that direction. No extra markup, so
    the sticky nav and its aria/tablist wiring are untouched. */
 nav.tabs {
-  display: flex; gap: 6px; padding: 12px 20px 0; background: var(--bg);
-  position: sticky; top: 61px; z-index: 19;
+  display: flex; gap: 6px; padding: 12px 20px 10px; background: var(--bg);
   overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap;
   background-image:
-    linear-gradient(to right, var(--bg), rgba(244,246,249,0)),
-    linear-gradient(to left, var(--bg), rgba(244,246,249,0)),
+    linear-gradient(to right, var(--bg), rgba(246,247,249,0)),
+    linear-gradient(to left, var(--bg), rgba(246,247,249,0)),
     linear-gradient(to right, rgba(16,24,32,0.13), rgba(16,24,32,0)),
     linear-gradient(to left, rgba(16,24,32,0.13), rgba(16,24,32,0));
   background-repeat: no-repeat;
@@ -160,10 +172,10 @@ nav.tabs button.active {
   background: var(--brand); color: #fff; border-color: var(--brand);
   box-shadow: 0 3px 10px rgba(11,83,159,0.28);
 }
-nav.tabs button:hover:not(.active) { border-color: var(--brand-light); color: var(--brand); }
+nav.tabs button:hover:not(.active) { border-color: var(--brand); color: var(--brand); }
 nav.tabs button .nav-badge {
   display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 8px;
-  background: var(--gold); color: var(--brand-navy); font-size: 10px; font-weight: 800;
+  background: var(--gold); color: var(--kit-black); font-size: 10px; font-weight: 800;
   letter-spacing: 0.02em; vertical-align: middle; text-transform: uppercase;
 }
 nav.tabs button.active .nav-badge { background: #fff; color: var(--brand); }
@@ -181,9 +193,12 @@ nav.tabs button.active .nav-badge { background: #fff; color: var(--brand); }
   font: inherit; font-size: 12px; font-weight: 700; color: var(--brand);
   text-decoration: none; white-space: nowrap; cursor: pointer;
 }
-.jump-pill:focus-visible { outline: 2px solid var(--brand-electric); outline-offset: 2px; }
-.jump-pill:active, .jump-pill:hover { background: var(--brand-wash); border-color: var(--brand-light); }
-.scout-anchor { scroll-margin-top: 128px; }
+.jump-pill:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.jump-pill:active, .jump-pill:hover { background: var(--brand-wash); border-color: var(--brand); }
+/* --stick-h is measured from the real band by measureStickBand(); the 128px
+   fallback is only for a first paint before the script runs. A hardcoded number
+   here silently drifts every time the header changes. */
+.scout-anchor { scroll-margin-top: calc(var(--stick-h, 128px) + 12px); }
 
 main { padding: 18px 20px 64px; max-width: 1100px; margin: 0 auto; }
 .section-title {
@@ -216,7 +231,7 @@ main { padding: 18px 20px 64px; max-width: 1100px; margin: 0 auto; }
 .sum-tile .st-val { font-family: var(--font-mono); font-size: 21px; font-weight: 700; color: var(--text); line-height: 1.15; }
 .sum-tile .st-val.good { color: var(--win); }
 .sum-tile .st-val.bad { color: var(--loss); }
-.sum-tile .st-sub { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; }
+.sum-tile .st-sub { font-size: 12px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sum-tile .st-sub strong { color: var(--text); font-weight: 700; }
 
 .leader-rail { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
@@ -228,7 +243,7 @@ main { padding: 18px 20px 64px; max-width: 1100px; margin: 0 auto; }
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 .leader-card:hover {
-  border-color: var(--brand-light); transform: translateY(-2px);
+  border-color: var(--brand); transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(11,83,159,0.14);
 }
 .leader-card .lbl { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gold-text); }
@@ -243,7 +258,7 @@ main { padding: 18px 20px 64px; max-width: 1100px; margin: 0 auto; }
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 .game-card:hover {
-  border-color: var(--brand-light); transform: translateY(-2px);
+  border-color: var(--brand); transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(11,83,159,0.14);
 }
 .game-card .row1 { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--text-muted); }
@@ -255,9 +270,31 @@ main { padding: 18px 20px 64px; max-width: 1100px; margin: 0 auto; }
 .badge.T { background: var(--bg); color: var(--text-muted); }
 .game-card .row2 { display: flex; align-items: baseline; justify-content: space-between; margin-top: 8px; }
 .matchup { font-weight: 700; font-size: 15px; }
-.matchup .vs { color: var(--text-muted); font-weight: 500; margin: 0 6px; }
+/* Home/away marker. Home is the Dodger-blue kit, away is the black kit, so the
+   pair comes off the uniforms rather than being invented. Until now this was
+   carried by the characters "vs" and "@" alone -- no colour anywhere in the
+   stylesheet mentioned it. It deliberately uses a channel the verdict colours do
+   not: a kit stripe and text colour, never a card fill or a badge, so it cannot
+   be mistaken for win/loss. */
+.ha {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-mono); font-weight: 700; font-size: 11px;
+  vertical-align: baseline;
+}
+.ha::before { content: ''; width: 3px; height: 12px; border-radius: 1px; background: currentColor; }
+.ha-home { color: var(--home); }
+.ha-away { color: var(--away); }
+.matchup .ha { margin: 0 8px; font-size: 12px; }
+/* The stripe repeats on the card edge so a column of cards can be read as home
+   stand or road trip without reading a single word. */
+.game-card.is-home { border-left: 4px solid var(--home); }
+.game-card.is-away { border-left: 4px solid var(--away); }
+.ha-legend {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin: 0; font-size: 11.5px; color: var(--text-muted);
+}
 .score-chip {
-  background: var(--brand-navy); color: #fff; font-family: var(--font-mono);
+  background: var(--kit-black); color: #fff; font-family: var(--font-mono);
   font-weight: 700; font-size: 18px; border-radius: 8px; padding: 5px 12px;
   white-space: nowrap;
 }
@@ -312,7 +349,7 @@ main { padding: 18px 20px 64px; max-width: 1100px; margin: 0 auto; }
 .gc-launch-btn {
   display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%;
   margin-top: 12px; padding: 9px 0; border: none; border-radius: 9px;
-  background: var(--brand-navy); color: #fff; font-size: 12px; font-weight: 800;
+  background: var(--kit-black); color: #fff; font-size: 12px; font-weight: 800;
   letter-spacing: 0.03em; cursor: pointer; transition: background 0.12s ease;
 }
 .gc-launch-btn:hover { background: var(--brand); }
@@ -337,7 +374,7 @@ main { padding: 18px 20px 64px; max-width: 1100px; margin: 0 auto; }
   background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18);
   border-radius: 10px; padding: 8px 11px; min-width: 132px;
 }
-.hero-form-card .hf-lbl { font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #B9CFE8; }
+.hero-form-card .hf-lbl { font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--baby); }
 .hero-form-card .hf-val { font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: #fff; line-height: 1.3; }
 .hero-form-card .hf-sub { font-size: 11px; color: #D8E4F2; }
 .hero-form-card svg { display: block; margin-top: 4px; }
@@ -376,7 +413,7 @@ main { padding: 18px 20px 64px; max-width: 1100px; margin: 0 auto; }
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 .player-card:hover {
-  border-color: var(--brand-light); transform: translateY(-2px);
+  border-color: var(--brand); transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(11,83,159,0.14);
 }
 .jersey-badge {
@@ -398,10 +435,10 @@ main { padding: 18px 20px 64px; max-width: 1100px; margin: 0 auto; }
 
 .slashline { display: flex; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
 .slash-chip {
-  background: var(--brand-navy); border-radius: 10px; padding: 10px 16px; min-width: 82px;
+  background: var(--kit-black); border-radius: 10px; padding: 10px 16px; min-width: 82px;
   text-align: center;
 }
-.slash-chip .lbl { font-size: 11px; color: #B9CFE8; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
+.slash-chip .lbl { font-size: 11px; color: var(--baby); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 700; }
 .slash-chip .val { font-family: var(--font-mono); color: #fff; font-weight: 700; font-size: 21px; margin-top: 3px; }
 
 .subtabs { display: flex; gap: 6px; margin: 18px 0 14px; border-bottom: 1px solid var(--border); }
@@ -472,7 +509,7 @@ table.log-table tr.blowup td:first-child { box-shadow: inset 3px 0 0 var(--loss)
   background: var(--surface); color: var(--text-muted); font-size: 12px; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer;
 }
-.compare-actions button:hover { border-color: var(--brand-light); color: var(--brand); }
+.compare-actions button:hover { border-color: var(--brand); color: var(--brand); }
 .compare-count { font-size: 11px; color: var(--text-muted); }
 .compare-count.crowded { color: var(--brand); font-weight: 700; }
 
@@ -501,7 +538,7 @@ table.log-table tr.blowup td:first-child { box-shadow: inset 3px 0 0 var(--loss)
   border: 1px solid var(--border); font-size: 12px; font-weight: 600; cursor: pointer; user-select: none;
   color: var(--text-muted); background: var(--bg);
 }
-.player-check.on { background: var(--brand-wash); border-color: var(--brand-light); color: var(--brand); }
+.player-check.on { background: var(--brand-wash); border-color: var(--brand); color: var(--brand); }
 .player-check .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: 0 0 auto; }
 
 .empty-note { color: var(--text-muted); font-size: 13px; padding: 20px 0; }
@@ -514,7 +551,7 @@ table.log-table tr.blowup td:first-child { box-shadow: inset 3px 0 0 var(--loss)
 /* ---------- Player photos ---------- */
 .player-photo-thumb {
   width: 56px; height: 56px; border-radius: 12px; overflow: hidden; flex: 0 0 auto;
-  border: 2px solid var(--brand); background: var(--brand-navy);
+  border: 2px solid var(--gold); background: var(--kit-black);
   box-shadow: 0 2px 6px rgba(10,37,64,0.18);
 }
 .player-photo-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: center 12%; display: block; }
@@ -524,12 +561,12 @@ table.log-table tr.blowup td:first-child { box-shadow: inset 3px 0 0 var(--loss)
 .player-hero {
   display: flex; align-items: stretch; height: 208px; border-radius: 18px; overflow: hidden;
   margin-bottom: 20px;
-  background: linear-gradient(135deg, var(--brand-navy) 0%, #0A4A78 60%, var(--brand) 100%);
+  background: linear-gradient(135deg, var(--kit-black) 0%, var(--brand) 100%);
   box-shadow: 0 10px 28px rgba(6,48,79,0.22);
 }
 .hero-photo-frame {
   width: 168px; flex: 0 0 168px; position: relative; overflow: hidden;
-  background: linear-gradient(160deg, var(--brand-navy), var(--brand));
+  background: linear-gradient(160deg, var(--kit-black), var(--brand));
 }
 .hero-photo-frame img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; display: block; }
 .hero-photo-frame .hero-fallback-number {
@@ -552,7 +589,7 @@ table.log-table tr.blowup td:first-child { box-shadow: inset 3px 0 0 var(--loss)
   font-size: 25px; font-weight: 800; color: #fff; margin-top: 3px; position: relative; z-index: 1;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.hero-info .hero-meta { font-size: 13px; color: #BFD6EE; margin-top: 4px; position: relative; z-index: 1; }
+.hero-info .hero-meta { font-size: 13px; color: var(--baby); margin-top: 4px; position: relative; z-index: 1; }
 .hero-info .hero-pills { margin-top: 12px; position: relative; z-index: 1; display: flex; gap: 6px; flex-wrap: wrap; }
 
 /* ---------- League: standings, leaders, scouting, game center ---------- */
@@ -571,7 +608,7 @@ table.log-table tr.blowup td:first-child { box-shadow: inset 3px 0 0 var(--loss)
 .caveat-note strong { color: var(--text); }
 .tap-hint {
   font-size: 13px; color: var(--brand); font-weight: 600; margin-bottom: 10px;
-  padding: 8px 12px; background: var(--brand-wash); border-left: 3px solid var(--brand-light);
+  padding: 8px 12px; background: var(--brand-wash); border-left: 3px solid var(--brand);
   border-radius: 0 8px 8px 0;
 }
 
@@ -584,11 +621,11 @@ table.data-table tbody tr.is-pioneer { background: var(--gold-wash); font-weight
 table.data-table tbody tr.is-pioneer:hover { background: var(--gold-wash); }
 table.data-table .team-link {
   cursor: pointer; color: var(--brand); font-weight: 700;
-  text-decoration: underline; text-decoration-color: var(--brand-light); text-decoration-thickness: 1px;
+  text-decoration: underline; text-decoration-color: var(--brand); text-decoration-thickness: 1px;
   text-underline-offset: 2px;
 }
 table.data-table .team-link::after { content: '›'; margin-left: 3px; font-weight: 800; }
-table.data-table .team-link:hover { color: var(--brand-electric); }
+table.data-table .team-link:hover { color: var(--kit-black); }
 table.data-table tbody tr.gc-row { cursor: pointer; }
 table.data-table tbody tr.gc-row:hover { background: var(--brand-wash); }
 table.data-table .rank-num { color: var(--text-muted); font-family: var(--font-mono); width: 26px; }
@@ -596,15 +633,23 @@ table.data-table .rank-num { color: var(--text-muted); font-family: var(--font-m
    the table highlighted whole rows on hover -- the table looked interactive and
    the headers were inert, which is where everyone clicks first. The select stays
    as a fallback, driven by the same state. */
-#site-footer { max-width: 1180px; margin: 8px auto 40px; padding: 0 16px; }
-.glossary { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 0 14px; }
+/* Number columns have to line up vertically or the eye cannot compare them;
+   the body face is proportional, so the digits were drifting. */
+table.data-table, table.log-table,
+table.data-table th, table.data-table td,
+table.log-table th, table.log-table td {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+#site-footer { max-width: 1100px; margin: 8px auto 40px; padding: 0 20px; }  /* was 1180/16, i.e. not aligned with main */
+.glossary { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 0 14px; }
 .glossary > summary { cursor: pointer; min-height: 40px; display: flex; align-items: center;
-  font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3); }
-.glossary > summary::marker { color: var(--ink-3); }
+  font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
+.glossary > summary::marker { color: var(--text-muted); }
 .glossary dl { margin: 2px 0 14px; display: grid; grid-template-columns: 96px 1fr; gap: 6px 14px; font-size: 12.5px; }
-.glossary dt { font-weight: 700; color: var(--ink); }
-.glossary dd { margin: 0; color: var(--ink-2); line-height: 1.45; }
-.footer-note { font-size: 11.5px; color: var(--ink-3); margin: 10px 2px 0; line-height: 1.5; }
+.glossary dt { font-weight: 700; color: var(--text); }
+.glossary dd { margin: 0; color: var(--text-muted); line-height: 1.45; }
+.footer-note { font-size: 11.5px; color: var(--text-muted); margin: 10px 2px 0; line-height: 1.5; }
 abbr[title] { text-decoration: underline dotted; text-underline-offset: 2px; cursor: help; }
 @media (max-width: 700px) { .glossary dl { grid-template-columns: 76px 1fr; } }
 
@@ -627,7 +672,7 @@ table.data-table tbody tr.row-link { cursor: pointer; }
 .show-more { display: block; width: 100%; min-height: 44px; margin: 10px 0 0; background: var(--surface);
   border: 1px solid var(--border); border-radius: 10px; font: inherit; font-weight: 700; font-size: 13px;
   color: var(--brand); cursor: pointer; }
-.show-more:hover { background: var(--brand-wash); border-color: var(--brand-light); }
+.show-more:hover { background: var(--brand-wash); border-color: var(--brand); }
 .leader-search { display: flex; align-items: center; gap: 8px; }
 .leader-search input {
   min-height: 40px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 10px;
@@ -647,20 +692,20 @@ table.data-table tbody tr.row-link { cursor: pointer; }
 }
 .scope-seg button + button { border-left: 1px solid var(--border); }
 .scope-seg button.active { background: var(--brand-wash); color: var(--brand); }
-.scope-seg button:focus-visible { outline: 2px solid var(--brand-electric); outline-offset: -2px; }
+.scope-seg button:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
 .scope-label { display: flex; align-items: center; gap: 8px; }
 .scope-label > span { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
 
 /* ---- Scouting page ---- */
 .scout-header {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
-  background: linear-gradient(135deg, var(--brand-navy) 0%, var(--brand) 100%);
+  background: linear-gradient(135deg, var(--kit-black) 0%, var(--brand) 100%);
   border-radius: 16px; padding: 20px 24px; margin-bottom: 20px; color: #fff;
   box-shadow: 0 10px 24px rgba(6,48,79,0.2);
 }
 .scout-header .sname { font-size: 22px; font-weight: 800; }
 .scout-header .srecord { font-family: var(--font-mono); font-size: 20px; font-weight: 700; color: var(--gold); }
-.scout-header .sdiff { font-size: 12px; color: #BFD6EE; margin-top: 2px; }
+.scout-header .sdiff { font-size: 12px; color: var(--baby); margin-top: 2px; }
 
 /* ---- Team Scouting Report (Hoboken deep-dive) ---- */
 .sw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
@@ -822,12 +867,12 @@ table.data-table tbody tr.row-link { cursor: pointer; }
   flex: 0 0 74px; text-align: center; padding: 3px 6px; border-radius: 6px; margin-top: 1px;
   font-size: 10px; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: #fff;
 }
-.beat-tip .beat-tag.pitching { background: #0B539F; }
+.beat-tip .beat-tag.pitching { background: var(--brand); }
 .beat-tip .beat-tag.target   { background: #8A5AA8; }
-.beat-tip .beat-tag.defense  { background: #2E9E7C; }
-.beat-tip .beat-tag.approach { background: #B8722E; }
+.beat-tip .beat-tag.defense  { background: #1C6E72; }  /* was #2E9E7C 3.33:1; teal, not win-green */
+.beat-tip .beat-tag.approach { background: #96551C; }  /* was #B8722E 3.83:1 */
 .beat-tip .beat-text { color: var(--text); line-height: 1.35; }
-.beat-tip .beat-text strong { font-family: var(--font-mono); color: var(--brand-navy); }
+.beat-tip .beat-text strong { font-family: var(--font-mono); color: var(--kit-black); }
 /* ---------- Matchup (audit J1) ----------
    Pre-game prep used to mean holding two pages in your head at once: Team ->
    Scouting for us, League -> tap the opponent for them. Nothing here is new
@@ -960,11 +1005,11 @@ table.data-table tbody tr.row-link { cursor: pointer; }
   border-radius: 10px; background: var(--surface); font: inherit; font-size: 13px; font-weight: 700;
   color: var(--text); cursor: pointer;
 }
-.inn-pill:hover { background: var(--brand-wash); border-color: var(--brand-light); }
+.inn-pill:hover { background: var(--brand-wash); border-color: var(--brand); }
 .inn-pill.active { background: var(--brand); color: #fff; border-color: var(--brand); }
 .gc-expand { min-height: 40px; padding: 8px 14px; border: 1px solid var(--border); border-radius: 10px;
   background: var(--surface); font: inherit; font-size: 13px; font-weight: 700; color: var(--brand); cursor: pointer; }
-.gc-expand:hover { background: var(--brand-wash); border-color: var(--brand-light); }
+.gc-expand:hover { background: var(--brand-wash); border-color: var(--brand); }
 .play-row.scoring .ptext { font-weight: 700; color: var(--gold-text); }
 
 @media (max-width: 560px) {
@@ -975,11 +1020,33 @@ table.data-table tbody tr.row-link { cursor: pointer; }
   .slashline { justify-content: space-between; }
   .slash-chip { flex: 1 1 40%; }
 }
+
+.chart-unavailable {
+  margin: 0; padding: 14px 0; font-size: 12.5px; line-height: 1.5;
+  color: var(--text-muted); text-align: center;
+}
+
+/* Someone who has asked their device to reduce motion has usually asked for a
+   reason. The hover lift is decoration, so it goes; state changes that are
+   carried by colour stay, because they are information. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  .leader-card:hover, .game-card:hover, .player-card:hover { transform: none; }
+}
 </style>
 </head>
 <body>
 
 <a class="skip-link" href="#main">Skip to content</a>
+<!-- Header and nav are ONE sticky block (design review P1). Separately they
+     each had their own sticky offset, and the header's was hardcoded into the
+     nav's `top`, which broke the moment the header wrapped to two rows. -->
+<div class="stickband" id="stickband">
 <header class="app-header">
   <div class="wordmark">
     <img class="logo-img" id="header-logo" alt="Hoboken Pioneers logo">
@@ -1003,12 +1070,13 @@ table.data-table tbody tr.row-link { cursor: pointer; }
 
 <nav class="tabs" role="tablist" aria-label="Sections">
   <button type="button" role="tab" data-view="team" class="active" aria-selected="true" aria-controls="main">Team</button>
+  <button type="button" role="tab" data-view="roster" aria-selected="false" aria-controls="main">Player</button>
   <button type="button" role="tab" data-view="hitting" aria-selected="false" aria-controls="main">Hitting</button>
   <button type="button" role="tab" data-view="pitching" aria-selected="false" aria-controls="main">Pitching</button>
-  <button type="button" role="tab" data-view="roster" aria-selected="false" aria-controls="main">Player</button>
   <button type="button" role="tab" data-view="league" aria-selected="false" aria-controls="main">League</button>
   <button type="button" role="tab" data-view="matchup" aria-selected="false" aria-controls="main">Matchup<span class="nav-badge">New</span></button>
 </nav>
+</div>
 
 <main id="main" role="tabpanel" tabindex="-1"></main>
 <footer id="site-footer"></footer>
@@ -1034,6 +1102,9 @@ table.data-table tbody tr.row-link { cursor: pointer; }
      statBox                  one number + one label inside a .stat-grid.
 
    Chips and marks
+     haMark       the home/away kit marker (blue stripe = home, black = away).
+       The ONLY place that pair of colours is allowed; it is not a verdict, so it
+       never becomes a card fill or a badge.
      rankChip     a rank inside a stated pool, e.g. 3rd of 6. Never a verdict.
        Third argument marks it estimated (dashed, prefixed "est.").
      count-chip   a neutral count or tag. Never coloured by good/bad.
@@ -1127,15 +1198,42 @@ function destroyCharts() {
    scrolling them down the page they are already on. Buttons plus a programmatic
    scroll keep the route in the URL. The target ids all carry .scout-anchor's
    scroll-margin-top so the sticky header does not cover the heading. */
+/* One builder for the home/away marker, so the four places that show it cannot
+   drift apart (component inventory discipline). aria-label carries the meaning
+   because "@" does not read as a word. */
+function haMark(isHome, label) {
+  const home = !!isHome;
+  const text = label || (home ? 'vs' : '@');
+  const name = home ? 'Home game' : 'Away game';
+  return `<span class="ha ${home ? 'ha-home' : 'ha-away'}" title="${name}" aria-label="${name}">${text}</span>`;
+}
 function jumpPill(targetId, label) {
   return `<button type="button" class="jump-pill" data-jump="${targetId}">${label}</button>`;
+}
+/* The header is flex-wrap: on a narrow screen it becomes two rows and grows
+   from about 69px to about 125px. The nav used to carry `top: 61px` and the
+   anchors `scroll-margin-top: 128px`, both hardcoded, so on a phone the sticky
+   nav sat behind the header -- no main navigation at all once scrolled -- and
+   in-page jumps landed underneath it. Measure the band instead of guessing. */
+function measureStickBand() {
+  if (typeof document === 'undefined') return 0;
+  const band = document.getElementById('stickband');
+  if (!band || typeof band.getBoundingClientRect !== 'function') return 0;
+  const rect = band.getBoundingClientRect();
+  const h = Math.round(rect && rect.height ? rect.height : 0);
+  const root = document.documentElement;
+  if (h > 0 && root && root.style && root.style.setProperty) {
+    root.style.setProperty('--stick-h', h + 'px');
+  }
+  return h;
 }
 function jumpTo(targetId) {
   const el = document.getElementById(targetId);
   if (!el) return false;
+  measureStickBand();
   if (el.scrollIntoView) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
   else if (typeof window !== 'undefined' && window.scrollTo && el.getBoundingClientRect) {
-    window.scrollTo(0, el.getBoundingClientRect().top + (window.scrollY || 0) - 90);
+    window.scrollTo(0, el.getBoundingClientRect().top + (window.scrollY || 0) - (measureStickBand() + 12));
   }
   return true;
 }
@@ -1322,14 +1420,26 @@ function glossaryHtml() {
     <dl>${rows}</dl></details>`;
 }
 
+function sourcesHtml() {
+  const rows = [
+    ['Hoboken batting and pitching', 'Read straight from Hoboken\'s own box scores, so these are exact.'],
+    ['Every other team\'s ERA and FIP', 'These are estimated from runs allowed &mdash; only box scores record earned runs, and this dataset has Hoboken\'s box scores only. Other teams\' ER comes from runs allowed at Hoboken\'s own ER/R rate (\u00d70.789) and their innings are reconstructed from play-by-play. Marked <span class="est-mark">*</span> wherever it appears.'],
+    ['Situational splits (count, outs, base state)', 'Base state and count are reconstructed from play outcomes rather than recorded in the source. Base state is simulated from standard advancement rules, so read these as directional, not exact.'],
+    ['Percentile ranks', 'Worked out from a rate regressed toward the pool average, so a two-at-bat hot start cannot jump the order. Anyone under the PA or IP qualifier is shown as an estimate.'],
+    ['Line scores and running scores', 'From the league feed. Where the feed and the box score disagree, the box score is the number used, and the page says so at that spot.'],
+  ].map(r => `<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join('');
+  return `<details class="glossary"><summary>Where these numbers come from</summary>
+    <dl>${rows}</dl></details>`;
+}
+
 /* Rendered once at boot: it is the same on every view, so it does not belong
    inside any of the per-view render functions. */
 function renderFooter() {
   const el = document.getElementById('site-footer');
   if (!el) return;
   el.innerHTML = `${glossaryHtml()}
-    <div class="footer-note">Hoboken Pioneers 2 · Baseball D3 2026 · data through ${prettyDate(DATA_THROUGH)}, ${DATA.team.games_played} games played.
-    Hoboken's own batting and pitching come from box scores. League-wide pitching ERA and FIP are estimated from runs allowed, and situational splits are reconstructed from play-by-play — both are marked wherever they appear.</div>`;
+    ${sourcesHtml()}
+    <div class="footer-note">Hoboken Pioneers 2 · Baseball D3 2026 · data through ${prettyDate(DATA_THROUGH)}, ${DATA.team.games_played} games played.</div>`;
 }
 
 function renderHeader() {
@@ -1419,7 +1529,7 @@ function summaryStripHtml() {
   tiles.push(`<div class="sum-tile">
     <span class="st-lbl">Most recent game</span>
     <span class="st-val ${lastGame && lastGame.result === 'W' ? 'good' : lastGame && lastGame.result === 'L' ? 'bad' : ''}">${lastGame ? `${lastGame.result} ${lastGame.hob_runs}–${lastGame.opp_runs}` : '—'}</span>
-    <span class="st-sub">${lastGame ? `${lastGame.home_away === 'Home' ? 'vs' : '@'} <strong>${lastGame.opponent}</strong> · ${prettyDate(lastGame.date)}` : ''}</span>
+    <span class="st-sub">${lastGame ? `${haMark(lastGame.home_away === 'Home')} <strong>${lastGame.opponent}</strong> · ${prettyDate(lastGame.date)}` : ''}</span>
   </div>`);
   return `<div class="summary-strip">${tiles.join('')}</div>`;
 }
@@ -1457,10 +1567,7 @@ function gameCardHtml(g) {
   const coveredInn = Math.max(g.line_hob.filter(v => String(v).trim() !== '').length,
                               g.line_opp.filter(v => String(v).trim() !== '').length);
   const lineNote = lineShort
-    ? `<div class="caveat-note linescore-note">Incomplete line score: the league feed for this game
-         stops at <strong>${g.gamestatus}</strong> and its innings add up to ${lineHobSum}&ndash;${lineOppSum}.
-         The final score shown above (${g.hob_runs}&ndash;${g.opp_runs}) is the official box score and is
-         the one used everywhere else on this site.</div>`
+    ? `<div class="caveat-note linescore-note">The league feed for this game stops at <strong>${g.gamestatus}</strong>, so these innings add up to ${lineHobSum}&ndash;${lineOppSum}. The final score above (${g.hob_runs}&ndash;${g.opp_runs}) is the official one.</div>`
     : '';
   const dec = GAME_DECISIONS.get(g.game_id) || {};
   const decBits = [];
@@ -1468,13 +1575,13 @@ function gameCardHtml(g) {
   if (dec.loss) decBits.push(`<span class="decision loss"><span class="dec-tag">L</span><span class="dec-name">${dec.loss.name}</span> ${dec.loss.detail}</span>`);
   if (dec.bat) decBits.push(`<span class="decision bat"><span class="dec-tag">BAT</span><span class="dec-name">${dec.bat.name}</span> ${topBatLabel(dec.bat)}</span>`);
   const decRow = decBits.length ? `<div class="row4">${decBits.join('')}</div>` : '';
-  return `<div class="game-card" data-game="${g.game_id}">
+  return `<div class="game-card ${g.home_away === 'Home' ? 'is-home' : 'is-away'}" data-game="${g.game_id}">
       <div class="row1">
         <span>${prettyDate(g.date)} · ${g.home_away}</span>
         <span class="badge ${g.result}">${g.result === 'W' ? 'WIN' : g.result === 'L' ? 'LOSS' : 'TIE'}</span>
       </div>
       <div class="row2">
-        <div class="matchup">Pioneers<span class="vs">${g.home_away === 'Home' ? 'vs' : 'at'}</span>${g.opponent}</div>
+        <div class="matchup">Pioneers${haMark(g.home_away === 'Home', g.home_away === 'Home' ? 'vs' : 'at')}${g.opponent}</div>
         <div class="score-chip">${g.hob_runs} – ${g.opp_runs}</div>
       </div>
       <div class="row3">
@@ -1529,6 +1636,11 @@ function scheduleHtml() {
   return `
     <div class="games-toolbar">
       <div class="games-filter-row">${pills}</div>
+      <p class="ha-legend">
+        ${haMark(true, 'vs')} Home &middot; Dodger blue
+        ${haMark(false, '@')} Away &middot; black
+        <span>The stripe is the kit the team wore.</span>
+      </p>
       <span class="games-count">Showing ${shown.length} of ${all.length} games · newest first</span>
     </div>
     ${shown.length ? groups : empty}`;
@@ -2142,7 +2254,7 @@ function renderPlayerScoutReport(p) {
   /* He appears as a pitcher on the roster, so the page has to account for the
      missing pitching card rather than quietly leaving it out. */
   if (!hasPit && p.pitching) {
-    summaryHtml += `<div class="caveat-note est-note"><strong>No pitching rates yet.</strong> ${pname(p)} has pitched in ${p.pitching.season.games} game${p.pitching.season.games === 1 ? '' : 's'} but recorded no outs (${p.pitching.season.pitches} pitch${p.pitching.season.pitches === 1 ? '' : 'es'}, ${p.pitching.season.h} hit${p.pitching.season.h === 1 ? '' : 's'}, ${p.pitching.season.bb} walk${p.pitching.season.bb === 1 ? '' : 's'}). ERA and WHIP divide by innings, so there is no rate to show and no rank to estimate from &mdash; an estimate needs at least one out to weight. The pitching totals below are the raw counts.</div>`;
+    summaryHtml += `<div class="caveat-note est-note"><strong>No pitching rates yet.</strong> ${pname(p)} has pitched in ${p.pitching.season.games} game${p.pitching.season.games === 1 ? '' : 's'} without recording an out, and ERA and WHIP divide by innings. The raw counts are below.</div>`;
   }
 
   const chips = [];
@@ -2234,7 +2346,7 @@ function renderPlayerScoutReport(p) {
 
   const battingEvents = filtered.filter(e => e.role === 'batting');
   const pitchingEvents = filtered.filter(e => e.role === 'pitching');
-  const situationalCaveat = `<div class="caveat-note">Reconstructed from play-by-play — outs and count reflect the situation the moment the PA was decided; base state is simulated from standard advancement rules, so treat as directional, not exact. Small samples: read percentages as tendencies, not certainties.</div>`;
+  const situationalCaveat = ``;
 
   let detailHtml = '';
   if (hasBat) {
@@ -2588,6 +2700,22 @@ function padSeries(arr, len) {
 function addChart(canvasId, type, labels, datasets, over) {
   const canvas = document.getElementById(canvasId);
   if (!canvas) return;
+  /* Chart.js is loaded from a CDN. If it is blocked, `new Chart(...)` threw in
+     the middle of a render, so everything queued after it -- including
+     wireJumpPills() and syncHash() -- never ran and the page lost its
+     navigation as well as its graphs. Fail to a caption instead, and say where
+     the same numbers can still be read. */
+  if (typeof Chart === 'undefined') {
+    const wrap = canvas.parentElement;
+    if (wrap && !wrap.querySelector('.chart-unavailable')) {
+      const note = document.createElement('p');
+      note.className = 'chart-unavailable';
+      note.textContent = 'The chart library did not load, so this graph is missing. The same numbers are in the tables on this page.';
+      wrap.appendChild(note);
+    }
+    canvas.style.display = 'none';
+    return;
+  }
   const o = over || {};
   activeCharts.push(new Chart(canvas, {
     type,
@@ -2665,7 +2793,7 @@ function hittingKpiStripHtml() {
     ${kpiCard('BB%', (s.bbPct * 100).toFixed(1) + '%', r.bb_pct, n)}
     ${kpiCard('K%', (s.kPct * 100).toFixed(1) + '%', r.k_pct, n)}
   </div>
-  <div class="caveat-note">Season totals from the box scores of all ${s.games} games (${s.pa} plate appearances). Ranks are against the other ${n - 1} teams in ${sc.pool}, taken from the league table, which is rebuilt from play-by-play. For batting the two sources are within rounding of each other — the league table counts ${lg ? lg.pa : '—'} plate appearances and ${lg ? fmtAvg(lg.ops) : '—'} OPS against ${s.pa} and ${s.ops.toFixed(3)} here — so the ranks can be read as they stand.</div>`;
+  `;
 }
 
 function pitchingKpiStripHtml() {
@@ -2679,7 +2807,7 @@ function pitchingKpiStripHtml() {
     ${kpiCard('BB/9', s.bb9.toFixed(1), r.bb9, n)}
     ${kpiCard('HR/9', s.hr9.toFixed(1), r.hr9, n)}
   </div>
-  <div class="caveat-note"><strong>Two sources, and they differ here.</strong> The numbers above are the box-score totals for all ${s.games} games — ${s.ip.toFixed(1)} IP, ${s.era.toFixed(2)} ERA — the same source as the charts below. The league table counts ${lg ? lg.ip.toFixed(1) : '—'} IP and ${lg ? lg.era.toFixed(2) : '—'} ERA for the same season, because innings are reconstructed from play-by-play there and a reliever entering mid-inning can be off by a batter. The ranks are that table's and cover ${sc.pool}, so read them as "roughly ${r.era ? '#' + r.era : '—'} of ${n}", not as a precise placing. Earned runs for every team except Hoboken are estimated from runs allowed.</div>`;
+  <div class="caveat-note"><strong>Two sources, and they differ here.</strong> Box score: ${s.ip.toFixed(1)} IP, ${s.era.toFixed(2)} ERA &mdash; the figures above and in the charts. The league table counts ${lg ? lg.ip.toFixed(1) : '&mdash;'} IP and ${lg ? lg.era.toFixed(2) : '&mdash;'} ERA, and the ranks are its own and cover ${sc.pool}, so read them as "roughly ${r.era ? '#' + r.era : '&mdash;'} of ${n}".</div>`;
 }
 
 /* Jump pills for the two chart pages -- they are longer than the scouting page
@@ -3057,7 +3185,7 @@ function mountPitchingCompareChart(pitchers) {
 }
 
 /* ---------- League: standings / leaders / scouting / game center ---------- */
-const LEAGUE_CAVEAT = `<div class="caveat-note"><strong>How this is built:</strong> standings, batting and final scores are reconstructed from official play-by-play and match box scores exactly. Pitching innings/ER outside Hoboken's own games are approximations (relievers entering mid-inning can be off by a batter or so; earned runs are estimated from Hoboken's own earned-run rate since true earned/unearned isn't recorded play-by-play). ${LEAGUE_DATA.name_coverage.named_ids}/${LEAGUE_DATA.name_coverage.total_ids} league player IDs are matched to real names — the rest show as <em>Player #####</em>.</div>`;
+const LEAGUE_CAVEAT = ``;
 
 /* opts.keepScroll: a sort, a search keystroke or "show more" re-renders the whole
    view, and without this the page jumped back to the top on every keypress.
@@ -3159,7 +3287,7 @@ function standingsHtml() {
   const order = DIVISIONS.map(d => d.name);
   return `
     <div class="tap-hint">Tap any row to see that team's scouting report — top hitters, top pitchers, and full schedule. Tap a column heading to sort both tables.</div>
-    <div class="caveat-note">The two divisions play entirely separate schedules — none of the ${LEAGUE_DATA.games.length} games this season crossed between them — so the # column is the position inside each division and there is no combined table.</div>
+    
     ${LEAGUE_CAVEAT}
     ${order.map(d => standingsTableHtml(d, sort)).join('')}
     <div class="table-meta"><span class="showing">${LEAGUE_DATA.standings.length} teams in ${order.length} divisions</span>
@@ -3251,7 +3379,7 @@ function leaderboardHtml(kind) {
     return r[key];
   };
   const nEst = kind === 'pitching' ? rows.filter(r => r.era_estimated).length : 0;
-  const estNote = nEst ? `<div class="caveat-note"><strong>${nEst} of the ${rows.length} pitchers shown have an estimated ERA and FIP</strong> (marked <span class="est-mark">*</span>). Earned runs are only recorded in box scores, and this dataset has Hoboken's box scores only, so every other team's ER is derived from runs allowed using Hoboken's own ER/R rate (x0.789) and their innings are reconstructed from play-by-play. Unmarked rows read straight from the box score.</div>` : '';
+  const estNote = nEst ? `` : '';
 
   const optionsHtml = Object.entries(sortOpts).map(([k, lbl]) => `<option value="${k}" ${k===sortKey?'selected':''}>${lbl}</option>`).join('');
 
@@ -3278,9 +3406,9 @@ function leaderboardHtml(kind) {
   // The pitching pool is thin enough that a single place is worth several
   // percentile points. That was only stated on the player pages (audit G5).
   const poolNote = kind === 'pitching'
-    ? `<div class="caveat-note">Only <strong>${allRows.filter(r => r.ip >= 15).length} pitchers in ${scopeName} reach 15 innings</strong>, so this is a shallow pool — one place is worth about ${Math.round(100 / Math.max(1, allRows.filter(r => r.ip >= 15).length - 1))} percentile points, and a single outing can move a pitcher several rows.</div>`
+    ? `<div class="caveat-note">Only <strong>${allRows.filter(r => r.ip >= 15).length} pitchers in ${scopeName} reach 15 innings</strong>, so one place is worth about ${Math.round(100 / Math.max(1, allRows.filter(r => r.ip >= 15).length - 1))} percentile points.</div>`
     : '';
-  const scopeNote = `<div class="caveat-note">Showing <strong>${scopeName}</strong>. The two BD3 divisions play separate schedules — no fixture this season crossed between them — so ${OUR_DIVISION} is the pool our players were actually measured against. Switch to all ${LEAGUE_DATA.standings.length} teams to see the whole league.</div>`;
+  const scopeNote = ``;
 
   return `
     <div class="tap-hint">Tap a column heading to sort. Tap a row to open that team's scouting report${kind === 'batting' ? ' — Pioneers rows open the player page' : ' — Pioneers rows open the player page'}.</div>
@@ -3408,7 +3536,7 @@ function scoutingGamesTableHtml(team) {
     const result = teamRuns > oppRuns ? 'W' : teamRuns < oppRuns ? 'L' : 'T';
     const clickable = GAME_CENTER_DATA.some(gc => gc.game_id === g.game_id);
     return `<tr class="${clickable ? 'gc-row' : ''}" ${clickable ? `data-game="${g.game_id}"` : ''}>
-      <td>${g.date}</td><td>${isHomeThisTeam ? 'vs' : '@'} ${opp}${clickable ? ' &#9654;' : ''}</td>
+      <td>${g.date}</td><td>${haMark(isHomeThisTeam)} ${opp}${clickable ? ' &#9654;' : ''}</td>
       <td><span class="badge ${result}">${result}</span></td><td>${teamRuns}-${oppRuns}</td>
     </tr>`;
   }).join('');
@@ -3490,13 +3618,9 @@ function shrinkNoteHtml(side, row, est, n, pool) {
     : `${row.ip} inning${row.ip === 1 ? '' : 's'}`;
   const qual = side === 'batting' ? `${row.min_pa} PA` : `${row.min_ip} IP`;
   if (est) {
-    return `<div class="caveat-note est-note"><strong>Ranks are estimated — ${exposure}, under the ${qual} qualifier.</strong>
-      The values on the left are the real, unadjusted numbers. The rank beside them is worked out from a regressed rate: about
-      <strong>${own}%</strong> this player's own rate and <strong>${100 - own}%</strong> the ${pool} average, with the split measured from
-      how much a rate actually moves game to game in this league. That is why a hot two-at-bat start lands mid-table here instead of first —
-      and why the rank exists at all rather than being left blank.</div>`;
+    return ``;
   }
-  return `<div class="caveat-note">Ranked against all ${n} ${side === 'batting' ? 'hitters' : 'pitchers'} in ${pool}, on a rate regressed toward the ${pool} average so short samples cannot jump the order. At ${exposure} the rank uses about <strong>${own}%</strong> of this player's own rate.</div>`;
+  return ``;
 }
 function pctLegendHtml(subject) {
   return `<div class="pct-legend">${subject} Number on the right is the percentile &mdash; 100 is best in that pool, 50 is its middle.
@@ -3804,7 +3928,7 @@ function teamScoutingBodyHtml(team, opts) {
       </div>
     </div>`;
 
-  const teamSituationalCaveat = `<div class="caveat-note">Reconstructed from play-by-play across all of ${team}'s ${allTeamEvents.length ? new Set(allTeamEvents.map(e=>e.game_id)).size : 0} games this season — outs and count reflect the situation the moment the PA was decided; base state is simulated from standard advancement rules, so treat as directional, not exact.</div>`;
+  const teamSituationalCaveat = ``;
   const hasTeamBat = allBatEvents.length > 0, hasTeamPit = allPitEvents.length > 0;
 
   const situationalHitHtml = hasTeamBat ? `
@@ -4144,10 +4268,9 @@ function renderGameCenterView() {
     </div>
     <div class="caveat-note">Final score ${boxFinal
       ? `${teamCode(g.away_team)} ${boxFinal.away}–${boxFinal.home} ${teamCode(g.home_team)}, from the box score.`
-      : `${teamCode(g.away_team)} ${scoreMeta.final.away}–${scoreMeta.final.home} ${teamCode(g.home_team)}.`}${
-      boxFinal && !pbpMatchesBox
-        ? ` <strong>The running score in the feed below is reconstructed from the play-by-play and adds up to ${scoreMeta.final.away}–${scoreMeta.final.home} instead</strong> — ${(boxFinal.away + boxFinal.home) - (scoreMeta.final.away + scoreMeta.final.home)} run(s) are not attributed to any play in the source data for this game, so treat the in-game score badges here as approximate.`
-        : ' The running score badges below are rebuilt from the play-by-play and reach the same final.'} Outs on each plate appearance are the outs when it began. Count column: <span class="pcount" style="flex:none">1-2</span> is the count <strong>after</strong> that pitch; <span class="pcount final" style="flex:none">on 1-2</span> is the count the plate appearance ended on. Rows that aren't pitches (pickoffs, substitutions, steals) show no count.</div>
+      : `${teamCode(g.away_team)} ${scoreMeta.final.away}–${scoreMeta.final.home} ${teamCode(g.home_team)}.`} ${boxFinal && !pbpMatchesBox
+      ? `<strong>The running score below is reconstructed from the play-by-play and adds up to ${scoreMeta.final.away}–${scoreMeta.final.home} instead of the box score's ${boxFinal.away}–${boxFinal.home}</strong> — ${(boxFinal.away + boxFinal.home) - (scoreMeta.final.away + scoreMeta.final.home)} run(s) are not attributed to any play here, so treat the in-game score badges as approximate. `
+      : 'The running score below is rebuilt from the play-by-play and reach the same final. '}Outs are the outs when the plate appearance began. <span class="pcount" style="flex:none">1-2</span> is the count <strong>after</strong> that pitch; <span class="pcount final" style="flex:none">on 1-2</span> is the count it ended on.</div>
     ${groupsHtml}
   `;
 
@@ -4389,7 +4512,7 @@ function renderMatchupView() {
           ${crossRow('Walk rate', batting.bb_pct, pitching.bb_pct, pctFmt, batTeamIsUs, true)}
         </tbody>
       </table></div>
-      <div class="caveat-note">Season-long rates from the league-wide play-by-play log &mdash; ${batting.pa} plate appearances on the batting side, ${pitching.pa} faced on the pitching side &mdash; not what happened when these two teams met. "Favours" says which of the two has been better at its half of that rate.</div>
+      <div class="caveat-note">Season-long rates, not this matchup: ${batting.pa} plate appearances on the batting side, ${pitching.pa} faced on the pitching side. "Favours" is whichever side has been better at its half of that rate.</div>
     </div>`;
 
   /* Where a matchup actually turns: our hitting by base state against their
@@ -4436,7 +4559,7 @@ function renderMatchupView() {
     const hasFeed = GAME_CENTER_DATA.some(gc => gc.game_id === g.game_id);
     return `<div class="mu-h2h ${g.result === 'W' ? 'w' : g.result === 'L' ? 'l' : ''}">
       <span class="h2h-score">${g.result} ${g.hob_runs}&ndash;${g.opp_runs}</span>
-      <span class="h2h-date">${g.home_away === 'Home' ? 'vs' : '@'} ${them}, ${prettyDate(g.date)}</span>
+      <span class="h2h-date">${haMark(g.home_away === 'Home')} ${them}, ${prettyDate(g.date)}</span>
       <span class="h2h-spacer"></span>
       ${hasFeed ? `<button type="button" class="jump-pill" data-gc="${g.game_id}">Pitch by pitch &rarr;</button>` : ''}
     </div>`;
@@ -4456,7 +4579,7 @@ function renderMatchupView() {
     ${legend}
     <div class="chart-card"><h4>Hitting</h4>${dvRows(MATCHUP_BAT_ROWS, usBat, themBat, usB, themB)}</div>
     <div class="chart-card"><h4>Pitching</h4>${dvRows(MATCHUP_PIT_ROWS, usPit, themPit, usP, themP)}
-      <div class="caveat-note">${them}'s ERA, WHIP and FIP are estimated from runs allowed &mdash; the league feed records no per-pitcher earned runs &mdash; which is what the ${estMark()} marks. Hoboken's own pitching comes from its box scores and is exact.</div>
+      
     </div>
 
     <div class="section-title scout-anchor" id="sec-mu-cross">${secIcon('target')}Bats against arms</div>
@@ -4468,14 +4591,14 @@ function renderMatchupView() {
       <thead><tr><th>Base state</th><th>Our AVG</th><th>Our PA</th><th>Their AVG allowed</th><th>Their PA faced</th></tr></thead>
       <tbody>${situRows}</tbody>
     </table></div>
-    <div class="caveat-note">Base state is reconstructed from play outcomes rather than recorded in the source, so treat it as a close estimate. The right-hand columns are what ${them}'s pitchers have allowed in that base state all season, against every opponent.</div>
+    
 
     <div class="section-title scout-anchor" id="sec-mu-staff">${secIcon('person')}Their staff</div>
     <div class="table-scroll"><table class="data-table">
       <thead><tr><th>Pitcher</th><th>IP</th><th>ERA</th><th>G</th><th>GS</th><th>5+ ER</th></tr></thead>
       <tbody>${staffRows}</tbody>
     </table></div>
-    <div class="caveat-note">Only pitchers with at least 5 innings are marked: <span class="count-chip">Target</span> is their highest ERA, <span class="count-chip zero">Toughest</span> their lowest. 5+ ER counts outings where they gave up five or more earned runs. Every ERA in this table is estimated${estMark()}.</div>
+    <div class="caveat-note">Only pitchers with at least 5 innings are marked: <span class="count-chip">Target</span> is their highest ERA, <span class="count-chip zero">Toughest</span> their lowest. 5+ ER counts outings where they gave up five or more earned runs.</div>
 
     <div class="section-title scout-anchor" id="sec-mu-us">${secIcon('bat')}Who we lean on</div>
     ${ourSideHtml}
@@ -4668,12 +4791,18 @@ NAV_BUTTONS.forEach((btn, i) => {
 
 renderHeader();
 renderFooter();
+measureStickBand();
 if (typeof window !== 'undefined' && window.addEventListener) {
   window.addEventListener('hashchange', onHashChange);
+  // The band changes height when the header wraps, so re-measure on resize and
+  // on orientation change rather than trusting the first measurement.
+  window.addEventListener('resize', measureStickBand);
+  window.addEventListener('orientationchange', measureStickBand);
 }
 // A shared link decides the opening view; anything else opens on Team.
 if (typeof location !== 'undefined' && location.hash) applyHash(location.hash);
 render();
+measureStickBand();
 </script>
 </body>
 </html>
