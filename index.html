@@ -757,7 +757,12 @@ table.sit-table th, table.sit-table td { padding: 7px 5px; }
 .sit-bucket { white-space: normal; }
 .sit-primary { position: relative; }
 .sit-primary span { position: relative; z-index: 1; font-family: var(--font-mono); font-weight: 700; }
-.sit-bar { position: absolute; left: 0; top: 4px; bottom: 4px; background: var(--brand-wash); border-radius: 3px; z-index: 0; }
+/* --brand-wash (#EAF1FB) was almost invisible against the white cell -- the
+   whole point of this fill is a bar you can actually see the length of, so it
+   needs real saturation, not the palest wash token. rgba keeps it neutral
+   (same colour whichever role/bucket) while staying well clear of AA for the
+   dark text sitting on top of it (2026-09-21, per Paiyen: "顏色看起來很淺"). */
+.sit-bar { position: absolute; left: 0; top: 3px; bottom: 3px; background: rgba(11, 83, 159, 0.30); border-right: 2px solid var(--brand); border-radius: 2px; z-index: 0; }
 table.sit-table tr.no-sample { opacity: 0.55; }
 table.sit-table tr.small-sample { opacity: 0.8; }
 
