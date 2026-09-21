@@ -601,6 +601,15 @@ table.log-table tr.blowup td:first-child { box-shadow: inset 3px 0 0 var(--loss)
 .league-subtabs button { font-size: 14px; padding: 10px 4px; margin-right: 22px; }
 .team-subtabs { margin: 4px 0 18px; }
 .team-subtabs button { font-size: 14px; padding: 10px 4px; margin-right: 22px; }
+.scout-note {
+  font-size: 12.5px; color: var(--text); line-height: 1.5; margin-bottom: 14px;
+}
+.gc-note {
+  font-size: 11.5px; color: var(--text-muted); line-height: 1.45; margin-bottom: 12px;
+}
+.chip-key {
+  font-size: 11.5px; color: var(--text-muted); margin: 0 0 10px; line-height: 1.6;
+}
 .caveat-note {
   font-size: 12px; color: var(--text-muted); background: var(--bg); border: 1px solid var(--border);
   border-radius: 10px; padding: 10px 14px; margin-bottom: 16px; line-height: 1.5;
@@ -726,28 +735,6 @@ table.data-table tbody tr.row-link { cursor: pointer; }
 
 .split-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0 20px; }
 @media (max-width: 700px) { .split-compare { grid-template-columns: 1fr; } }
-.split-compare3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 6px 0 16px; }
-/* The whole point of these three cards is comparing bar lengths side by side.
-   Dropping to one column used to put four numbers between each pair of bars,
-   which destroyed the comparison exactly where it is needed most -- on a phone
-   in the stand (audit C4). Instead the cards collapse into three tight rows
-   with a fixed label column, so the bars stay stacked and aligned and can still
-   be read against each other. */
-@media (max-width: 700px) {
-  .split-compare3 { grid-template-columns: 1fr; gap: 0; margin: 6px 0 18px; }
-  .split-compare3 .split-card {
-    display: grid; grid-template-columns: 96px 1fr; grid-template-areas: "title bar" "stats stats";
-    align-items: center; column-gap: 10px; row-gap: 6px;
-    border-radius: 0; border-left: 0; border-right: 0; border-top: 0; box-shadow: none;
-    padding: 9px 2px;
-  }
-  .split-compare3 .split-card:first-child { border-top: 1px solid var(--border); }
-  .split-compare3 .split-card h5 { grid-area: title; margin: 0; font-size: 11px; line-height: 1.25; }
-  .split-compare3 .split-card .split-bar { grid-area: bar; margin: 0; }
-  .split-compare3 .split-card .split-stats { grid-area: stats; gap: 16px; padding-left: 2px; }
-  .split-compare3 .split-card .split-stat { text-align: left; min-width: 0; }
-  .split-compare3 .split-card .split-stat .v { font-size: 15px; }
-}
 .split-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; box-shadow: 0 1px 2px rgba(16,24,32,0.04), 0 1px 3px rgba(16,24,32,0.03); }
 .split-card h5 { margin: 0 0 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
 .split-card .split-stats { display: flex; gap: 14px; flex-wrap: wrap; }
@@ -757,15 +744,22 @@ table.data-table tbody tr.row-link { cursor: pointer; }
 .split-card .split-bar { height: 8px; background: var(--bg); border-radius: 4px; margin: 0 0 10px; overflow: hidden; }
 .split-card .split-bar-fill { height: 100%; border-radius: 4px; background: var(--brand); min-width: 3px; }
 
-/* Sample-size weighting. A .000 AVG from 0 PA and a .000 AVG from 40 PA are not
-   the same claim, so they must not look the same: an empty bucket shows em-dashes
-   and no bar, and anything under SMALL_SAMPLE_PA is dimmed and tagged so the
-   number is still available but doesn't read as an established tendency. */
-.split-card.no-sample { opacity: 0.55; box-shadow: none; }
-.split-card.no-sample .split-stat .v { color: var(--text-muted); font-weight: 400; }
-.split-card.small-sample { border-style: dashed; }
-.split-card.small-sample .split-bar-fill { opacity: 0.4; }
 .sample-tag { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px; background: var(--bg); border: 1px solid var(--border); color: var(--text-muted); font-size: 10px; font-weight: 800; letter-spacing: 0.04em; vertical-align: middle; cursor: help; }
+
+/* Situational Report as a table (replaces the old 3-card-per-dimension grid,
+   which ran ~760px per role on a phone). Sample-size weighting: PA is its own
+   column so the reader sees the size next to the rate directly, and rows
+   under SMALL_SAMPLE_PA are dimmed -- the number stays but reads as noise, not
+   a tendency. A 0-PA bucket shows em-dashes and no bar. */
+.sit-dim-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); margin: 14px 0 6px; }
+table.sit-table { min-width: 0; font-size: 12.5px; }
+table.sit-table th, table.sit-table td { padding: 7px 5px; }
+.sit-bucket { white-space: normal; }
+.sit-primary { position: relative; }
+.sit-primary span { position: relative; z-index: 1; font-family: var(--font-mono); font-weight: 700; }
+.sit-bar { position: absolute; left: 0; top: 4px; bottom: 4px; background: var(--brand-wash); border-radius: 3px; z-index: 0; }
+table.sit-table tr.no-sample { opacity: 0.55; }
+table.sit-table tr.small-sample { opacity: 0.8; }
 
 /* The better side of a two-card comparison. Computed from the numbers (see
    splitPairHtml), never hardcoded -- a left bar plus a bolder value, not a wash
@@ -1026,6 +1020,51 @@ table.data-table tbody tr.row-link { cursor: pointer; }
   color: var(--text-muted); text-align: center;
 }
 
+/* ---------------------------------------------------------------------------
+   Phone pass (design review P2/P6). Most of the traffic is a phone in one hand
+   at a game, and the two things that cost the most screen were the sticky band
+   and the chart cards. Measured against a 375x667 viewport:
+
+     sticky band   header 14px padding + 40px logo + nav 12/10 + 40px button
+                   = about 131px, i.e. 20% of the screen gone before any data
+     charts        five cards at 220px each, all the same shape
+
+   The band comes down to about 99px by shrinking the logo, dropping the league
+   line (the logo and the title already say it) and tightening the nav padding.
+   Touch targets stay at 40px -- that is the one number not up for negotiation,
+   so the saving comes out of padding, not out of the buttons.
+   --------------------------------------------------------------------------- */
+@media (max-width: 560px) {
+  .app-header { padding: 8px 14px; gap: 10px; }
+  .wordmark { gap: 9px; }
+  .wordmark .logo-img { height: 30px; }
+  .wordmark .name { font-size: 14px; }
+  .wordmark .league { display: none; }
+  nav.tabs { padding: 6px 14px; gap: 5px; }
+  nav.tabs button { padding: 8px 13px; font-size: 12px; }
+  .header-scoreboard { gap: 10px; }
+
+  main { padding: 14px 14px 56px; }
+  .section-title { margin: 16px 0 8px; }
+
+  /* Charts: shorter, and less card around them. Five in a row at 220px each
+     was 1100px of scrolling before the tables started. */
+  .chart-wrap { height: 176px; }
+  .chart-card { padding: 12px 12px 10px; margin-bottom: 12px; }
+  .chart-card h4 { margin: 0 0 8px; }
+  .chart-sub { margin: -4px 0 8px; }
+
+  /* Everything else is padding. Same content, less scrolling. */
+  .sum-tile { padding: 10px 12px; }
+  .game-card { padding: 12px 13px; margin-bottom: 8px; }
+  .pct-card { padding: 12px 13px 4px; margin-bottom: 12px; }
+  table.data-table th, table.data-table td { padding: 7px 8px; }
+  table.sit-table th, table.sit-table td { padding: 6px 4px; }
+  .table-scroll { margin-bottom: 14px; }
+  .summary-strip { gap: 8px; }
+  .kpi-strip { gap: 8px; }
+}
+
 /* Someone who has asked their device to reduce motion has usually asked for a
    reason. The hover lift is decoration, so it goes; state changes that are
    carried by colour stay, because they are information. */
@@ -1090,9 +1129,11 @@ table.data-table tbody tr.row-link { cursor: pointer; }
    need a card, a bar, a chip or a caveat, it is already here.
 
    Cards and rows
-     battingSplitCardHtml / pitchingSplitCardHtml  the only split-card builders;
-       both take a barPct and route it through splitCardBarHtml, and both take
-       their sample-size tag from splitSampleMeta (NO PA / SMALL SAMPLE).
+     situationalRoleHtml      the 3-bucket situational breakdown as a table
+       (.sit-table), one row per bucket with an in-cell magnitude bar
+       (.sit-bar); replaced the old 3-card-per-dimension grid 2026-09-21.
+       Sample size comes from splitSampleMeta via the PA column and row
+       dimming, not a text tag.
      splitPairHtml            two split cards side by side with the winner marked.
      pctBarRow                one percentile bar, ranked; used on every scouting
        page. Bar LENGTH is the percentile, never the raw value (C3). Pass
@@ -1567,7 +1608,7 @@ function gameCardHtml(g) {
   const coveredInn = Math.max(g.line_hob.filter(v => String(v).trim() !== '').length,
                               g.line_opp.filter(v => String(v).trim() !== '').length);
   const lineNote = lineShort
-    ? `<div class="caveat-note linescore-note">The league feed for this game stops at <strong>${g.gamestatus}</strong>, so these innings add up to ${lineHobSum}&ndash;${lineOppSum}. The final score above (${g.hob_runs}&ndash;${g.opp_runs}) is the official one.</div>`
+    ? `<div class="linescore-note">Feed incomplete (${g.gamestatus}): innings total ${lineHobSum}&ndash;${lineOppSum}, official ${g.hob_runs}&ndash;${g.opp_runs}.</div>`
     : '';
   const dec = GAME_DECISIONS.get(g.game_id) || {};
   const decBits = [];
@@ -1639,7 +1680,7 @@ function scheduleHtml() {
       <p class="ha-legend">
         ${haMark(true, 'vs')} Home &middot; Dodger blue
         ${haMark(false, '@')} Away &middot; black
-        <span>The stripe is the kit the team wore.</span>
+        
       </p>
       <span class="games-count">Showing ${shown.length} of ${all.length} games · newest first</span>
     </div>
@@ -2107,32 +2148,6 @@ function splitSampleMeta(pa) {
   return { cls: '', tag: '', blank: false };
 }
 
-function splitCardBarHtml(barPct, blank) {
-  return (barPct != null && !blank) ? `<div class="split-bar"><div class="split-bar-fill" style="width:${barPct}%;"></div></div>` : '';
-}
-
-function battingSplitCardHtml(label, stats, barPct, extraCls, extraTag) {
-  const s = splitSampleMeta(stats.pa);
-  const v = str => s.blank ? '&mdash;' : str;
-  return `<div class="split-card${s.cls}${extraCls || ''}"><h5>${label} <span style="font-weight:400;text-transform:none;">(${stats.pa} PA)</span>${extraTag || ''}${s.tag}</h5>
-    ${splitCardBarHtml(barPct, s.blank)}<div class="split-stats">
-      <div class="split-stat"><div class="v">${v(fmtAvg(stats.avg))}</div><div class="l">AVG</div></div>
-      <div class="split-stat"><div class="v">${v(stats.ops.toFixed(3))}</div><div class="l">OPS</div></div>
-      <div class="split-stat"><div class="v">${v((stats.k_pct*100).toFixed(0)+'%')}</div><div class="l">K%</div></div>
-      <div class="split-stat"><div class="v">${v((stats.bb_pct*100).toFixed(0)+'%')}</div><div class="l">BB%</div></div>
-    </div></div>`;
-}
-function pitchingSplitCardHtml(label, stats, barPct, extraCls, extraTag) {
-  const s = splitSampleMeta(stats.pa);
-  const v = str => s.blank ? '&mdash;' : str;
-  return `<div class="split-card${s.cls}${extraCls || ''}"><h5>${label} <span style="font-weight:400;text-transform:none;">(${stats.pa} PA)</span>${extraTag || ''}${s.tag}</h5>
-    ${splitCardBarHtml(barPct, s.blank)}<div class="split-stats">
-      <div class="split-stat"><div class="v">${v(fmtAvg(stats.avg_against))}</div><div class="l">${abbr('AVG-A')}</div></div>
-      <div class="split-stat"><div class="v">${v((stats.k_pct*100).toFixed(0)+'%')}</div><div class="l">K%</div></div>
-      <div class="split-stat"><div class="v">${v((stats.bb_pct*100).toFixed(0)+'%')}</div><div class="l">BB%</div></div>
-    </div></div>`;
-}
-
 // Takes two ALREADY-FILTERED event arrays (one representing the hitting
 // side, one the pitching side -- for a player these are the same event log
 // split by e.role, for a team they're two different slices of the shared
@@ -2146,12 +2161,20 @@ const SITUATIONAL_DIMS = [
 ];
 
 // Renders all 3 situational dimensions for ONE role (hitting or pitching)
-// from an already-filtered event array. Hitting and pitching are rendered
-// as fully separate sections by the callers (renderPlayerScoutReport,
+// from an already-filtered event array, as one compact table per dimension
+// -- row per bucket, PA column first so the sample size is read alongside
+// the rate rather than needing a separate tag. Hitting and pitching are
+// rendered as fully separate sections by the callers (renderPlayerScoutReport,
 // teamScoutingBodyHtml) rather than stacked together, so each gets its own
 // jump-pill destination.
 function situationalRoleHtml(events, isBat) {
   if (!events.length) return `<div class="empty-note">No plate appearances match this filter.</div>`;
+  const restCols = isBat
+    ? [['OPS', s => s.ops.toFixed(3)], ['K%', s => (s.k_pct*100).toFixed(0)+'%'], ['BB%', s => (s.bb_pct*100).toFixed(0)+'%']]
+    : [['K%', s => (s.k_pct*100).toFixed(0)+'%'], ['BB%', s => (s.bb_pct*100).toFixed(0)+'%']];
+  const primaryLabel = isBat ? 'AVG' : abbr('AVG-A');
+  const primaryFn = s => isBat ? fmtAvg(s.avg) : fmtAvg(s.avg_against);
+
   return SITUATIONAL_DIMS.map(d => {
     const bucketStats = d.buckets.map(([key, label]) => {
       const filtered = events.filter(e => e[d.key] === key);
@@ -2164,11 +2187,23 @@ function situationalRoleHtml(events, isBat) {
     const solid = bucketStats.filter(b => b.stats.pa >= SMALL_SAMPLE_PA);
     const scalePool = solid.length ? solid : bucketStats;
     const maxPrimary = Math.max(...scalePool.map(b => b.primary), 0.0001);
-    const cards = bucketStats.map(({ label, stats, primary }) => {
-      const barPct = Math.min(100, Math.round((primary / maxPrimary) * 100));
-      return isBat ? battingSplitCardHtml(label, stats, barPct) : pitchingSplitCardHtml(label, stats, barPct);
+    const rows = bucketStats.map(({ label, stats, primary }) => {
+      const s = splitSampleMeta(stats.pa);
+      const barPct = s.blank ? 0 : Math.min(100, Math.round((primary / maxPrimary) * 100));
+      const primaryVal = s.blank ? '&mdash;' : primaryFn(stats);
+      const rest = restCols.map(([, fn]) => `<td>${s.blank ? '&mdash;' : fn(stats)}</td>`).join('');
+      return `<tr class="${s.cls.trim()}">
+        <td class="sit-bucket">${label}</td>
+        <td>${stats.pa}</td>
+        <td class="sit-primary">${s.blank ? '' : `<div class="sit-bar" style="width:${barPct}%;"></div>`}<span>${primaryVal}</span></td>
+        ${rest}
+      </tr>`;
     }).join('');
-    return `<div class="section-title" style="font-size:12px;margin-top:14px;">${d.label}</div><div class="split-compare3">${cards}</div>`;
+    return `<div class="sit-dim-label">${d.label}</div>
+      <div class="table-scroll"><table class="data-table sit-table">
+        <thead><tr><th>&nbsp;</th><th>PA</th><th>${primaryLabel}</th>${restCols.map(([lbl]) => `<th>${lbl}</th>`).join('')}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>`;
   }).join('');
 }
 
@@ -2209,7 +2244,6 @@ function renderPlayerScoutReport(p) {
       ${jumpPill(`sec-${pid}-summary`, 'Summary')}
       ${hasBat ? jumpPill(`sec-${pid}-sit-hitting`, 'Situational: Hitting') : ''}
       ${hasPit ? jumpPill(`sec-${pid}-sit-pitching`, 'Situational: Pitching') : ''}
-      ${jumpPill(`sec-${pid}-totals`, 'Season Totals')}
     </div>`;
 
   // ---- Summary: condensed percentile bars + strength/weakness chips ----
@@ -2228,7 +2262,7 @@ function renderPlayerScoutReport(p) {
     const est = !!bat.sample_short;
     const o = { est: est };
     summaryHtml += `<div class="pct-card"><h4>Hitting${bat.pa ? ` — ${bat.pa} PA` : ''}</h4>`;
-    summaryHtml += pctLegendHtml(`Against all ${nBat} hitters in ${poolScope} who had a plate appearance.`)
+    summaryHtml += pctLegendHtml(`Against all ${nBat} hitters in ${poolScope}.`)
       + shrinkNoteHtml('batting', bat, est, nBat, poolScope);
     summaryHtml += `
       ${pctBarRow('AVG', fmtAvg(bat.avg), bRanks.avg, nBat, o)}
@@ -2241,7 +2275,7 @@ function renderPlayerScoutReport(p) {
     const est = !!pit.sample_short;
     const o = { est: est };
     summaryHtml += `<div class="pct-card"><h4>Pitching${pit.ip ? ` — ${pit.ip} IP` : ''}</h4>`;
-    summaryHtml += pctLegendHtml(`Against all ${nPit} pitchers in ${poolScope} who recorded an out — a thin pool, so one place is worth about ${Math.round(100 / (nPit - 1))} percentile points.`)
+    summaryHtml += pctLegendHtml(`Against all ${nPit} pitchers in ${poolScope}.`)
       + shrinkNoteHtml('pitching', pit, est, nPit, poolScope);
     summaryHtml += `
       ${pctBarRow('ERA', pit.era.toFixed(2) + (pit.era_estimated ? estMark() : ''), pRanks.era, nPit, o)}
@@ -2254,7 +2288,7 @@ function renderPlayerScoutReport(p) {
   /* He appears as a pitcher on the roster, so the page has to account for the
      missing pitching card rather than quietly leaving it out. */
   if (!hasPit && p.pitching) {
-    summaryHtml += `<div class="caveat-note est-note"><strong>No pitching rates yet.</strong> ${pname(p)} has pitched in ${p.pitching.season.games} game${p.pitching.season.games === 1 ? '' : 's'} without recording an out, and ERA and WHIP divide by innings. The raw counts are below.</div>`;
+    summaryHtml += `<div class="empty-note">No pitching rates yet &mdash; ${pname(p)} has pitched without recording an out. Raw counts below.</div>`;
   }
 
   const chips = [];
@@ -2300,13 +2334,9 @@ function renderPlayerScoutReport(p) {
     advHtml += '</div>';
     summaryHtml += `<div class="section-title">${secIcon('chart')}Advanced Metrics</div>${advHtml}`;
   }
-  // Counting stats last: they are the reference numbers you check after reading
-  // the ranked ones, not the headline (audit B1's "conclusion first" rule
-   // applied to the player page).
-  summaryHtml += `<div id="sec-${pid}-totals" class="scout-anchor">
-      <div class="section-title">${secIcon('list')}Season Totals${p.batting && p.pitching ? ' — Batting' : ''}</div>
-      ${playerSeasonTotalsHtml(p)}
-    </div>`;
+  // Counting stats moved into the Game Log tab's tfoot (it already carries the
+  // per-game rows they add up from), so this page doesn't repeat the same
+  // numbers in a second grid.
   summaryHtml += `</div>`; // close #sec-${pid}-summary
 
   // ---- Detailed situational breakdown, filterable by game/month/opponent ----
@@ -2370,32 +2400,6 @@ function renderPlayerScoutReport(p) {
   return summaryHtml + detailHtml;
 }
 
-/* Season Totals: the counting stats that used to be the Overview tab. The rate
-   stats are NOT repeated here -- they are the percentile bars at the top of this
-   same page, which is the whole point of folding the tab in. */
-function playerSeasonTotalsHtml(p) {
-  let html = '';
-  if (p.batting) {
-    const s = p.batting.season;
-    html += `
-      <div class="stat-grid">
-        ${statBox(s.games,'G')}${statBox(s.pa,'PA')}${statBox(s.ab,'AB')}${statBox(s.r,'R')}${statBox(s.h,'H')}
-        ${statBox(s.double,'2B')}${statBox(s.triple,'3B')}${statBox(s.hr,'HR')}${statBox(s.rbi,'RBI')}
-        ${statBox(s.bb,'BB')}${statBox(s.so,'SO')}${statBox(s.sb,'SB')}${statBox(s.cs,'CS')}
-      </div>`;
-  }
-  if (p.pitching) {
-    const s = p.pitching.season;
-    html += `
-      <div class="stat-grid">
-        ${statBox(s.games,'G')}${statBox(s.ip.toFixed(1),'IP')}${statBox(`${s.win}-${s.loss}`,'W-L')}${statBox(s.h,'H')}${statBox(s.r,'R')}
-        ${statBox(s.er,'ER')}${statBox(s.bb,'BB')}${statBox(s.so,'SO')}${statBox(s.hr,'HR')}${statBox(s.pitches,'PITCHES')}
-      </div>`;
-  }
-  if (!html) html = '<div class="empty-note">No recorded stats yet for this player.</div>';
-  return html;
-}
-
 /* Icon set for section headings. Each one is a 14px 20x20 stroke glyph drawn to
    read at that size -- no fills, no detail below 2px. */
 const SECTION_ICONS = {
@@ -2438,15 +2442,15 @@ function playerGameLogHtml(p) {
     const t = f => sumField(games, f);
     html += `<div class="section-title">${secIcon('list')}Batting Log</div>
     <div class="table-scroll"><table class="log-table"><thead><tr>
-      <th>Date</th><th>Opponent</th><th>AB</th><th>R</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th><th>SB</th>
+      <th>Date</th><th>Opponent</th><th>PA</th><th>AB</th><th>R</th><th>H</th><th>2B</th><th>3B</th><th>HR</th><th>RBI</th><th>BB</th><th>SO</th><th>SB</th><th>CS</th>
     </tr></thead><tbody>
       ${[...games].reverse().map(g => `<tr>
-        <td>${g.date}</td><td>${g.opponent}</td><td>${g.ab}</td><td>${g.r}</td><td class="${g.h >= MULTI_HIT ? 'hot' : ''}">${g.h}</td>
-        <td>${g.double}</td><td>${g.triple}</td><td>${g.hr}</td><td>${g.rbi}</td><td>${g.bb}</td><td>${g.so}</td><td>${g.sb}</td>
+        <td>${g.date}</td><td>${g.opponent}</td><td>${g.pa}</td><td>${g.ab}</td><td>${g.r}</td><td class="${g.h >= MULTI_HIT ? 'hot' : ''}">${g.h}</td>
+        <td>${g.double}</td><td>${g.triple}</td><td>${g.hr}</td><td>${g.rbi}</td><td>${g.bb}</td><td>${g.so}</td><td>${g.sb}</td><td>${g.cs}</td>
       </tr>`).join('')}
     </tbody><tfoot><tr>
-      <td>${games.length} games</td><td>Season</td><td>${t('ab')}</td><td>${t('r')}</td><td>${t('h')}</td>
-      <td>${t('double')}</td><td>${t('triple')}</td><td>${t('hr')}</td><td>${t('rbi')}</td><td>${t('bb')}</td><td>${t('so')}</td><td>${t('sb')}</td>
+      <td>${games.length} games</td><td>Season</td><td>${t('pa')}</td><td>${t('ab')}</td><td>${t('r')}</td><td>${t('h')}</td>
+      <td>${t('double')}</td><td>${t('triple')}</td><td>${t('hr')}</td><td>${t('rbi')}</td><td>${t('bb')}</td><td>${t('so')}</td><td>${t('sb')}</td><td>${t('cs')}</td>
     </tr></tfoot></table></div>
     <div class="log-legend"><span class="lg-swatch hot"></span>${MULTI_HIT}+ hits in a game</div>`;
   }
@@ -2456,15 +2460,15 @@ function playerGameLogHtml(p) {
     const ipTotal = sumField(games, 'outs') / 3;   // never sum g.ip: it is 2.2-style notation
     html += `<div class="section-title">${secIcon('list')}Pitching Log</div>
     <div class="table-scroll"><table class="log-table"><thead><tr>
-      <th>Date</th><th>Opponent</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>SO</th><th>Pitches</th><th>Dec</th>
+      <th>Date</th><th>Opponent</th><th>IP</th><th>H</th><th>R</th><th>ER</th><th>BB</th><th>SO</th><th>HR</th><th>Pitches</th><th>Dec</th>
     </tr></thead><tbody>
       ${[...games].reverse().map(g => `<tr class="${g.er >= BLOWUP_ER ? 'blowup' : ''}">
         <td>${g.date}</td><td>${g.opponent}</td><td>${g.ip.toFixed(1)}</td><td>${g.h}</td><td>${g.r}</td><td>${g.er}</td>
-        <td>${g.bb}</td><td>${g.so}</td><td>${g.pitches}</td><td>${g.win ? 'W' : g.loss ? 'L' : g.save ? 'SV' : '—'}</td>
+        <td>${g.bb}</td><td>${g.so}</td><td>${g.hr}</td><td>${g.pitches}</td><td>${g.win ? 'W' : g.loss ? 'L' : g.save ? 'SV' : '—'}</td>
       </tr>`).join('')}
     </tbody><tfoot><tr>
       <td>${games.length} outings</td><td>Season</td><td>${ipTotal.toFixed(1)}</td><td>${t('h')}</td><td>${t('r')}</td><td>${t('er')}</td>
-      <td>${t('bb')}</td><td>${t('so')}</td><td>${t('pitches')}</td><td>${t('win')}-${t('loss')}</td>
+      <td>${t('bb')}</td><td>${t('so')}</td><td>${t('hr')}</td><td>${t('pitches')}</td><td>${t('win')}-${t('loss')}</td>
     </tr></tfoot></table></div>
     <div class="log-legend"><span class="lg-rule"></span>${BLOWUP_ER}+ earned runs allowed in an outing</div>`;
   }
@@ -2478,16 +2482,14 @@ function playerTrendsHtml(p) {
     html += `
       <div class="chart-card"><h4>Hits &amp; At-Bats per Game</h4><div class="chart-wrap"><canvas id="chart-bat-ab"></canvas></div></div>
       <div class="chart-card"><h4>Cumulative AVG / OBP / SLG (season to date)</h4>
-        <div class="chart-sub">${CUMULATIVE_NOTE}</div>
-        <div class="chart-wrap"><canvas id="chart-bat-rate"></canvas></div></div>
+                <div class="chart-wrap"><canvas id="chart-bat-rate"></canvas></div></div>
     `;
   }
   if (p.pitching && p.pitching.games.length > 1) {
     html += `
       <div class="chart-card"><h4>Innings &amp; Earned Runs per Outing</h4><div class="chart-wrap"><canvas id="chart-pit-ip"></canvas></div></div>
       <div class="chart-card"><h4>Cumulative ERA (season to date)</h4>
-        <div class="chart-sub">${CUMULATIVE_NOTE}</div>
-        <div class="chart-wrap"><canvas id="chart-pit-era"></canvas></div></div>
+                <div class="chart-wrap"><canvas id="chart-pit-era"></canvas></div></div>
     `;
   }
   if (!html) html = '<div class="empty-note">Not enough games yet to chart a trend — check back as more games are added.</div>';
@@ -2537,7 +2539,7 @@ function refLine(label, value, len) {
 function rateAxis(extra) { return Object.assign({ beginAtZero: false, grace: '10%' }, extra || {}); }
 const X_BY_DATE = { title: { display: true, text: 'Game date — oldest first' } };
 const X_BY_APPEARANCE = { title: { display: true, text: "Appearance number — G1 is each player's own first game" } };
-const CUMULATIVE_NOTE = 'Each point is the season-to-date figure, not that game on its own — cumulative lines swing hard over the first few games and then flatten, which is arithmetic rather than form. For recent form, see the last-5 line on a player page.';
+const CUMULATIVE_NOTE = '';
 const APPEARANCE_NOTE = "The x-axis counts appearances, not dates: players have played different numbers of games, so G7 is a different day for each line.";
 
 /* Reference values for the chart comparison lines, computed from TOTALS rather
@@ -2807,7 +2809,7 @@ function pitchingKpiStripHtml() {
     ${kpiCard('BB/9', s.bb9.toFixed(1), r.bb9, n)}
     ${kpiCard('HR/9', s.hr9.toFixed(1), r.hr9, n)}
   </div>
-  <div class="caveat-note"><strong>Two sources, and they differ here.</strong> Box score: ${s.ip.toFixed(1)} IP, ${s.era.toFixed(2)} ERA &mdash; the figures above and in the charts. The league table counts ${lg ? lg.ip.toFixed(1) : '&mdash;'} IP and ${lg ? lg.era.toFixed(2) : '&mdash;'} ERA, and the ranks are its own and cover ${sc.pool}, so read them as "roughly ${r.era ? '#' + r.era : '&mdash;'} of ${n}".</div>`;
+  `;
 }
 
 /* Jump pills for the two chart pages -- they are longer than the scouting page
@@ -2882,14 +2884,14 @@ function renderHittingView() {
 
     <div class="section-title">${secIcon('chart')}Team Hitting Trends</div>
     <div class="chart-card scout-anchor" id="sec-hit-runs"><h4>Runs &amp; Hits per Game</h4>
-      <div class="chart-sub">Dashed line is the ${OUR_DIVISION} average of ${lgRef.runsPerGame.toFixed(1)} runs per team per game.</div>
+      <div class="chart-sub">Dashed line = ${OUR_DIVISION} average ${lgRef.runsPerGame.toFixed(1)} runs/game.</div>
       <div class="chart-wrap"><canvas id="chart-team-bat-rh"></canvas></div></div>
     <div class="chart-card scout-anchor" id="sec-hit-power"><h4>Home Runs &amp; RBI per Game</h4><div class="chart-wrap"><canvas id="chart-team-bat-hrrbi"></canvas></div></div>
     <div class="chart-card scout-anchor" id="sec-hit-slash"><h4>Cumulative AVG / OBP / SLG / OPS (season to date)</h4>
-      <div class="chart-sub">${CUMULATIVE_NOTE} Dashed line is the ${OUR_DIVISION} average AVG of ${fmtAvg(lgRef.avg)}.</div>
+      <div class="chart-sub">Dashed line = ${OUR_DIVISION} average AVG ${fmtAvg(lgRef.avg)}.</div>
       <div class="chart-wrap"><canvas id="chart-team-bat-slash"></canvas></div></div>
     <div class="chart-card scout-anchor" id="sec-hit-disc"><h4>Cumulative Walk Rate vs. Strikeout Rate (BB% / K%)</h4>
-      <div class="chart-sub">${CUMULATIVE_NOTE} Dashed line is the ${OUR_DIVISION} average K% of ${(lgRef.kPct * 100).toFixed(1)}%.</div>
+      <div class="chart-sub">Dashed line = ${OUR_DIVISION} average K% ${(lgRef.kPct * 100).toFixed(1)}%.</div>
       <div class="chart-wrap"><canvas id="chart-team-bat-disc"></canvas></div></div>
     <div class="chart-card scout-anchor" id="sec-hit-speed"><h4>Stolen Bases per Game</h4><div class="chart-wrap"><canvas id="chart-team-bat-sb"></canvas></div></div>
 
@@ -3046,14 +3048,14 @@ function renderPitchingView() {
 
     <div class="section-title">${secIcon('chart')}Team Pitching Trends</div>
     <div class="chart-card scout-anchor" id="sec-pit-runs"><h4>Runs &amp; Earned Runs Allowed per Game</h4>
-      <div class="chart-sub">Dashed line is the ${OUR_DIVISION} average of ${lgRef.runsPerGame.toFixed(1)} runs allowed per team per game.</div>
+      <div class="chart-sub">Dashed line = ${OUR_DIVISION} average ${lgRef.runsPerGame.toFixed(1)} runs allowed/game.</div>
       <div class="chart-wrap"><canvas id="chart-team-pit-runs"></canvas></div></div>
     <div class="chart-card scout-anchor" id="sec-pit-kbb"><h4>Strikeouts &amp; Walks per Game</h4><div class="chart-wrap"><canvas id="chart-team-pit-kbb"></canvas></div></div>
     <div class="chart-card scout-anchor" id="sec-pit-erawhip"><h4>Cumulative ERA / WHIP (season to date)</h4>
-      <div class="chart-sub">${CUMULATIVE_NOTE} Dashed line is the estimated ${OUR_DIVISION} average ERA of ${lgRef.era.toFixed(2)} — opponent earned runs are estimated from runs allowed, so read it as a rough benchmark.</div>
+      <div class="chart-sub">Dashed line = ${OUR_DIVISION} average ERA ${lgRef.era.toFixed(2)} (estimated).</div>
       <div class="chart-wrap"><canvas id="chart-team-pit-erawhip"></canvas></div></div>
     <div class="chart-card scout-anchor" id="sec-pit-rate9"><h4>Cumulative K/9 vs. BB/9 (season to date)</h4>
-      <div class="chart-sub">${CUMULATIVE_NOTE} Dashed line is the ${OUR_DIVISION} average of ${lgRef.k9.toFixed(1)} K/9.</div>
+      <div class="chart-sub">Dashed line = ${OUR_DIVISION} average ${lgRef.k9.toFixed(1)} K/9.</div>
       <div class="chart-wrap"><canvas id="chart-team-pit-rate9"></canvas></div></div>
     <div class="chart-card scout-anchor" id="sec-pit-pitches"><h4>Pitch Count per Game</h4><div class="chart-wrap"><canvas id="chart-team-pit-pitches"></canvas></div></div>
 
@@ -3286,8 +3288,7 @@ function standingsHtml() {
   const sort = state.standingsSort;
   const order = DIVISIONS.map(d => d.name);
   return `
-    <div class="tap-hint">Tap any row to see that team's scouting report — top hitters, top pitchers, and full schedule. Tap a column heading to sort both tables.</div>
-    
+      
     ${LEAGUE_CAVEAT}
     ${order.map(d => standingsTableHtml(d, sort)).join('')}
     <div class="table-meta"><span class="showing">${LEAGUE_DATA.standings.length} teams in ${order.length} divisions</span>
@@ -3406,12 +3407,11 @@ function leaderboardHtml(kind) {
   // The pitching pool is thin enough that a single place is worth several
   // percentile points. That was only stated on the player pages (audit G5).
   const poolNote = kind === 'pitching'
-    ? `<div class="caveat-note">Only <strong>${allRows.filter(r => r.ip >= 15).length} pitchers in ${scopeName} reach 15 innings</strong>, so one place is worth about ${Math.round(100 / Math.max(1, allRows.filter(r => r.ip >= 15).length - 1))} percentile points.</div>`
+    ? ``
     : '';
   const scopeNote = ``;
 
   return `
-    <div class="tap-hint">Tap a column heading to sort. Tap a row to open that team's scouting report${kind === 'batting' ? ' — Pioneers rows open the player page' : ' — Pioneers rows open the player page'}.</div>
     ${LEAGUE_CAVEAT}
     ${scopeNote}
     ${poolNote}
@@ -3623,7 +3623,7 @@ function shrinkNoteHtml(side, row, est, n, pool) {
   return ``;
 }
 function pctLegendHtml(subject) {
-  return `<div class="pct-legend">${subject} Number on the right is the percentile &mdash; 100 is best in that pool, 50 is its middle.
+  return `<div class="pct-legend">${subject}
     <div class="pct-keys">
       <span class="pct-key"><i style="background:var(--win);"></i>Top third</span>
       <span class="pct-key"><i style="background:var(--text-muted);"></i>Middle third</span>
@@ -3879,7 +3879,7 @@ function teamScoutingBodyHtml(team, opts) {
     <div class="stat-grid">
       ${statBox(sc.fielding.fpct.toFixed(3), 'FPCT')}${statBox(sc.fielding.e, 'ERRORS')}${statBox(sc.fielding.errors_per_game, 'E/GAME')}${statBox(sc.fielding.dp, 'DP')}
     </div>
-    <div class="caveat-note">${sc.fieldingNote}</div>
+    <div class="scout-note">${sc.fieldingNote}</div>
     <div class="table-scroll"><table class="data-table">
       <thead><tr><th>Position</th><th>Errors</th></tr></thead>
       <tbody>${sc.fielding.top_error_positions.map(([pos, e]) => `<tr><td>${pos}</td><td>${e}</td></tr>`).join('')}</tbody>
@@ -3970,7 +3970,7 @@ function teamScoutingBodyHtml(team, opts) {
     <div id="sec-${id}-snapshot" class="scout-anchor">
       <div class="pct-card">
         <h4>Hitting vs. ${standing.division} Average</h4>
-        ${pctLegendHtml(`Where ${team} sits against the other ${n-1} teams in ${scope.pool} — the only teams they played.`)}
+        ${pctLegendHtml(`${team} against the other ${n-1} teams in ${scope.pool}.`)}
         ${pctBarRow('AVG', fmtAvg(tb.avg), scope.r.avg, n)}
         ${pctBarRow('OBP', fmtAvg(tb.obp), scope.r.obp, n)}
         ${pctBarRow('SLG', fmtAvg(tb.slg), scope.r.slg, n)}
@@ -3981,7 +3981,7 @@ function teamScoutingBodyHtml(team, opts) {
 
       <div class="pct-card">
         <h4>Pitching vs. ${standing.division} Average</h4>
-        ${pctLegendHtml(`Same ${pScope.n}-team ${pScope.pool} scale. ERA and FIP for teams other than Hoboken are estimated from runs allowed.`)}
+        ${pctLegendHtml(`Same ${pScope.n}-team ${pScope.pool} scale.`)}
         ${pctBarRow('ERA', tp.era.toFixed(2), pScope.r.era, pScope.n)}
         ${pctBarRow('WHIP', tp.whip.toFixed(2), pScope.r.whip, pScope.n)}
         ${pctBarRow('K/9', tp.k9, pScope.r.k9, pScope.n)}
@@ -4266,11 +4266,11 @@ function renderGameCenterView() {
       </div>
       <button type="button" class="gc-expand" id="gc-expand-all">${state.gcExpandAll ? 'Collapse all' : 'Expand all'}</button>
     </div>
-    <div class="caveat-note">Final score ${boxFinal
+    <div class="gc-note">Final score ${boxFinal
       ? `${teamCode(g.away_team)} ${boxFinal.away}–${boxFinal.home} ${teamCode(g.home_team)}, from the box score.`
       : `${teamCode(g.away_team)} ${scoreMeta.final.away}–${scoreMeta.final.home} ${teamCode(g.home_team)}.`} ${boxFinal && !pbpMatchesBox
       ? `<strong>The running score below is reconstructed from the play-by-play and adds up to ${scoreMeta.final.away}–${scoreMeta.final.home} instead of the box score's ${boxFinal.away}–${boxFinal.home}</strong> — ${(boxFinal.away + boxFinal.home) - (scoreMeta.final.away + scoreMeta.final.home)} run(s) are not attributed to any play here, so treat the in-game score badges as approximate. `
-      : 'The running score below is rebuilt from the play-by-play and reach the same final. '}Outs are the outs when the plate appearance began. <span class="pcount" style="flex:none">1-2</span> is the count <strong>after</strong> that pitch; <span class="pcount final" style="flex:none">on 1-2</span> is the count it ended on.</div>
+      : 'The running score below is rebuilt from the play-by-play and reach the same final.'}</div>
     ${groupsHtml}
   `;
 
@@ -4479,7 +4479,7 @@ function renderMatchupView() {
     <span class="dv-key"><span class="dv-dot them"></span>${them} &mdash; bar grows left</span>
     <span class="dv-key"><span class="dv-dot us"></span>Pioneers &mdash; bar grows right</span>
     <span>Bar length is the percentile within ${poolTxt}, so every row is the same scale. The chip names the team the number favours.</span>
-    ${crossDiv ? `<span class="dv-note">${them} is in ${themSt.division} and never played us. Their division has its own table, so the ranks in this view are league-wide across all ${n} teams — the one pool both teams appear in.</span>` : ''}
+    ${crossDiv ? `` : ''}
   </div>`;
 
   const dvRows = (rows, u, t, uS, tS) => rows.filter(r => uS.r[r.key] !== undefined && tS.r[r.key] !== undefined)
@@ -4512,7 +4512,7 @@ function renderMatchupView() {
           ${crossRow('Walk rate', batting.bb_pct, pitching.bb_pct, pctFmt, batTeamIsUs, true)}
         </tbody>
       </table></div>
-      <div class="caveat-note">Season-long rates, not this matchup: ${batting.pa} plate appearances on the batting side, ${pitching.pa} faced on the pitching side. "Favours" is whichever side has been better at its half of that rate.</div>
+      
     </div>`;
 
   /* Where a matchup actually turns: our hitting by base state against their
@@ -4583,8 +4583,8 @@ function renderMatchupView() {
     </div>
 
     <div class="section-title scout-anchor" id="sec-mu-cross">${secIcon('target')}Bats against arms</div>
-    ${crossTable('Our bats vs their arms', ourBat, theirPit, 'Pioneers', them, true)}
-    ${crossTable('Their bats vs our arms', theirBat, ourPit, them, 'Pioneers', false)}
+    ${crossTable('Our bats vs their arms, season rates', ourBat, theirPit, 'Pioneers', them, true)}
+    ${crossTable('Their bats vs our arms, season rates', theirBat, ourPit, them, 'Pioneers', false)}
 
     <div class="section-title scout-anchor" id="sec-mu-situ">${secIcon('ball')}Key situations</div>
     <div class="table-scroll"><table class="data-table">
@@ -4598,11 +4598,11 @@ function renderMatchupView() {
       <thead><tr><th>Pitcher</th><th>IP</th><th>ERA</th><th>G</th><th>GS</th><th>5+ ER</th></tr></thead>
       <tbody>${staffRows}</tbody>
     </table></div>
-    <div class="caveat-note">Only pitchers with at least 5 innings are marked: <span class="count-chip">Target</span> is their highest ERA, <span class="count-chip zero">Toughest</span> their lowest. 5+ ER counts outings where they gave up five or more earned runs.</div>
+    <p class="chip-key"><span class="count-chip">Target</span> highest ERA &middot; <span class="count-chip zero">Toughest</span> lowest &middot; 5+ ER = outings of five or more earned runs</p>
 
     <div class="section-title scout-anchor" id="sec-mu-us">${secIcon('bat')}Who we lean on</div>
     ${ourSideHtml}
-    <div class="caveat-note">Our top three hitters by OPS (20 PA minimum) and best two arms by ERA (5 IP minimum), from Hoboken's own box scores.</div>
+    
 
     <div class="section-title scout-anchor" id="sec-mu-beat">${secIcon('flag')}How to beat them</div>
     <div class="beat-tips">${beatTipsHtmlFor(them)}</div>
